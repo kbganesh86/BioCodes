@@ -1,0 +1,36 @@
+GlnBPseq_rev = "TTTCGGTTCAGTACCGAACCATTTTTTGTAGATTTCGTTGTAAGTTCCGTTCTCGCGCAGGGTTTTCAACGCGCCGTTGACTTTGTCACGCAGCTCGTCGCTACCTTTCGGGAACGCAATACCGTATTGCTGCGCTTCCAGAGAGTCACCTACCGCTTTGAACTGACCGTTACCGGCGGTTTTGATGAAGTACAGAATGTTTGGCGTATCGTGCAGAACGGCGTCTGCGCGGTTGGTGCCCAGTTCCATATAGGCGTTATCGATGTTCGGGAACTGACGCAGATCTTTAGTTTTGATGTTTGCTTTCGCGTAATCAACGGAGCCAGTACCGCTCTTCACAGCAACCACTTTCCCGTCGAGATCTTTCACGCTTTTCACATCGTTATTGTTAGCTTTCACCATCACTAACAGGCCGCTTTTGTAGTAGCCGTCAGAGAAATCGATCGCTTTTTTACGCTCGTCGGTGATGGTAATGCCCGCCAGCGCCAGATCGACGTTTTTGGTTTGCAGTGCCGGAATGATCCCACTGAAATCCATCGGCTTCAGTTCGTAATCCAGCTTCAGCTCTTTAGCGATGGCAGCCCACAGATCAACGTCAAAGCCCACATATTTATCGCCCTGTTTAAATTCAAACGGAACGAAGGCGGTATCCGTCGCGACAACTAATTTTTTATCCGCGGCATGAGAAGAAACCGCAAAAGCCAGGGTCAGTGCAGCCAGTGAAACTTTTAATACAGACTTCATGGACAGAGACGATGGTATATCTCCTTCTTAAAGTTAAACAAAATTATTTCTAGAGGGAAACCGTTGTGGTGTCCCTATAGTGAGTCGTATTAATTTCGCGGGATCGAGATCTCGATCCTC"
+##GlnBPlength = (nchar(GlnBPseq)/3)-1 ##this calculation ignored because above sequence also has flanking sequences
+GlnBPlength = 248
+Sequence = character(248)
+Pr_name = character(248)
+Tm = numeric(248)
+amino_acid = numeric(248)
+Pr_Length = numeric(248)
+for(j in 0:GlnBPlength) {
+  codonstart = 3*j + 1
+  firstbp = codonstart
+  lastbp = codonstart+10
+  melt_temp = 0
+  k = 20
+  primer_candidate=""
+  while(melt_temp<59) {
+    lastbp = firstbp + k
+    primer_candidate = substr(GlnBPseq_rev,firstbp,lastbp)
+    numAde = str_count(primer_candidate,"A")
+    numThy = str_count(primer_candidate,"T")
+    numGua = str_count(primer_candidate,"G")
+    numCyt = str_count(primer_candidate,"C")
+    melt_temp = 64.9 + 41*(numGua+numCyt-16.4)/nchar(primer_candidate)
+    k = k + 1
+  }
+  i = 248 - j
+  amino_acid[i] = i
+  Pr_name[i] = paste("Rev_PrimerC_",amino_acid[i],"_GlnBP")
+  Sequence[i] = paste("CTGGTAGTGGTCGGCGAGCTGCACgcttcc",primer_candidate,sep="")
+  Tm[i] = round(melt_temp)
+  Pr_Length[i] = nchar(Sequence[i])
+  ##cat(codonstart," : ",primer_candidate," : ",round(Tm)," : ", nchar(primer_candidate), "\n")
+}
+df = data.frame(amino_acid, Pr_name, Sequence, Pr_Length, Tm)
+setwd("C:/Users/ganesh/Desktop/scripts/GlnBP_invitroTnT")
+write.csv(df, file = "Rev_PrimersC_GlnBP.csv")
